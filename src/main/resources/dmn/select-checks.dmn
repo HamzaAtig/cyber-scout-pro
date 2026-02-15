@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/"
+             xmlns:camunda="http://camunda.org/schema/1.0/dmn"
+             id="Definitions_SelectChecks"
+             name="Select Checks"
+             namespace="http://hat.org/cyberscout/dmn">
+  <decision id="selectChecks" name="Select Checks">
+    <decisionTable id="DecisionTable_SelectChecks" hitPolicy="COLLECT">
+      <input id="Input_apiLikely" label="API likely?">
+        <inputExpression id="InputExpression_apiLikely" typeRef="boolean">
+          <text>apiLikely</text>
+        </inputExpression>
+      </input>
+      <input id="Input_hasOpenApi" label="Has OpenAPI?">
+        <inputExpression id="InputExpression_hasOpenApi" typeRef="boolean">
+          <text>hasOpenApi</text>
+        </inputExpression>
+      </input>
+      <input id="Input_hasActuator" label="Has Actuator?">
+        <inputExpression id="InputExpression_hasActuator" typeRef="boolean">
+          <text>hasActuator</text>
+        </inputExpression>
+      </input>
+
+      <output id="Output_family" label="Check Family" name="family" typeRef="string" />
+
+      <rule id="Rule_AlwaysHeaders">
+        <inputEntry id="InputEntry_Always_apiLikely"><text>-</text></inputEntry>
+        <inputEntry id="InputEntry_Always_openapi"><text>-</text></inputEntry>
+        <inputEntry id="InputEntry_Always_actuator"><text>-</text></inputEntry>
+        <outputEntry id="OutputEntry_Always"><text>"SECURITY_HEADERS"</text></outputEntry>
+      </rule>
+
+      <rule id="Rule_OpenApi">
+        <inputEntry id="InputEntry_OpenApi_apiLikely"><text>-</text></inputEntry>
+        <inputEntry id="InputEntry_OpenApi_openapi"><text>true</text></inputEntry>
+        <inputEntry id="InputEntry_OpenApi_actuator"><text>-</text></inputEntry>
+        <outputEntry id="OutputEntry_OpenApi"><text>"OPENAPI_PROBE"</text></outputEntry>
+      </rule>
+
+      <rule id="Rule_OpenApiAuthzSmoke">
+        <inputEntry id="InputEntry_OAAuthz_apiLikely"><text>true</text></inputEntry>
+        <inputEntry id="InputEntry_OAAuthz_openapi"><text>true</text></inputEntry>
+        <inputEntry id="InputEntry_OAAuthz_actuator"><text>-</text></inputEntry>
+        <outputEntry id="OutputEntry_OAAuthz"><text>"OPENAPI_AUTHZ_SMOKE"</text></outputEntry>
+      </rule>
+
+      <rule id="Rule_OpenApiTypeValidation">
+        <inputEntry id="InputEntry_OAVal_apiLikely"><text>true</text></inputEntry>
+        <inputEntry id="InputEntry_OAVal_openapi"><text>true</text></inputEntry>
+        <inputEntry id="InputEntry_OAVal_actuator"><text>-</text></inputEntry>
+        <outputEntry id="OutputEntry_OAVal"><text>"OPENAPI_TYPE_VALIDATION"</text></outputEntry>
+      </rule>
+
+      <rule id="Rule_Actuator">
+        <inputEntry id="InputEntry_Actuator_apiLikely"><text>-</text></inputEntry>
+        <inputEntry id="InputEntry_Actuator_openapi"><text>-</text></inputEntry>
+        <inputEntry id="InputEntry_Actuator_actuator"><text>true</text></inputEntry>
+        <outputEntry id="OutputEntry_Actuator"><text>"ACTUATOR_PROBE"</text></outputEntry>
+      </rule>
+
+      <rule id="Rule_RateLimitWhenApiLikely">
+        <inputEntry id="InputEntry_RL_apiLikely"><text>true</text></inputEntry>
+        <inputEntry id="InputEntry_RL_openapi"><text>-</text></inputEntry>
+        <inputEntry id="InputEntry_RL_actuator"><text>-</text></inputEntry>
+        <outputEntry id="OutputEntry_RL"><text>"RATELIMIT_PROBE"</text></outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+</definitions>

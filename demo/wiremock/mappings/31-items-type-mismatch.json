@@ -1,0 +1,15 @@
+{
+  "request": {
+    "method": "POST",
+    "urlPath": "/api/items",
+    "bodyPatterns": [
+      { "matches": ".*\\\"count\\\"\\s*:\\s*\\\".*" }
+    ]
+  },
+  "response": {
+    "status": 500,
+    "headers": { "Content-Type": "application/json" },
+    "body": "{\"error\":\"Exception\",\"message\":\"Type mismatch for field count\"}"
+  }
+}
+

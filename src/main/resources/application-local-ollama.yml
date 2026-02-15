@@ -1,0 +1,23 @@
+cyberscout:
+  ai:
+    enabled: true
+    model: ${CS_AI_MODEL:mistral}
+    temperature: ${CS_AI_TEMPERATURE:0.2}
+    max-response-chars: ${CS_AI_MAX_RESPONSE_CHARS:20000}
+    max-payload-chars: ${CS_AI_MAX_PAYLOAD_CHARS:2000}
+
+spring:
+  ai:
+    ollama:
+      # Local-only by design.
+      base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+      chat:
+        options:
+          model: ${CS_AI_MODEL:mistral}
+          temperature: ${CS_AI_TEMPERATURE:0.2}
+          # Ask Ollama for JSON-only output. If unsupported by the model, our parser will reject the output.
+          format: json
+      # Avoid pulling models automatically in dev; user installs models locally via `ollama pull ...`.
+      init:
+        pull-model-strategy: never
+

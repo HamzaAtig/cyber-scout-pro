@@ -1,0 +1,23 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - target: 5432
+        published: 5432
+        host_ip: 127.0.0.1
+        protocol: tcp
+        mode: host
+    environment:
+      POSTGRES_DB: cyber_scout
+      POSTGRES_USER: cyberscout
+      POSTGRES_PASSWORD: cyberscout
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cyberscout -d cyber_scout"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - cyber-scout-postgres-data:/var/lib/postgresql/data
+
+volumes:
+  cyber-scout-postgres-data:

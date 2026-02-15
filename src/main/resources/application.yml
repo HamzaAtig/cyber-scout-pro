@@ -1,0 +1,50 @@
+spring:
+  application:
+    name: cyber-scout-pro
+  datasource:
+    url: ${DB_URL:jdbc:h2:mem:cyberscout;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE}
+    username: ${DB_USERNAME:sa}
+    password: ${DB_PASSWORD:}
+    driver-class-name: ${DB_DRIVER:org.h2.Driver}
+  h2:
+    console:
+      enabled: true
+  flyway:
+    enabled: false
+
+camunda:
+  bpm:
+    admin-user:
+      id: ${CAMUNDA_ADMIN_USER:demo}
+      password: ${CAMUNDA_ADMIN_PASSWORD:demo}
+    database:
+      schema-update: true
+    filter:
+      create: All tasks
+    generic-properties:
+      properties:
+        historyTimeToLive: P30D
+
+cyberscout:
+  policy:
+    allowed-hosts: ${CS_ALLOWED_HOSTS:localhost,127.0.0.1}
+    allowed-ports: ${CS_ALLOWED_PORTS:80,443,8080,8443}
+    allowed-methods: ${CS_ALLOWED_METHODS:GET,POST,PUT,PATCH,DELETE}
+    allowed-path-prefixes: ${CS_ALLOWED_PATH_PREFIXES:/}
+    max-requests-per-target: ${CS_MAX_REQUESTS_PER_TARGET:25}
+    max-payloads-per-target: ${CS_MAX_PAYLOADS_PER_TARGET:3}
+    max-concurrent-attacks: ${CS_MAX_CONCURRENT_ATTACKS:4}
+    dry-run-only: ${CS_DRY_RUN_ONLY:true}
+  governance:
+    enabled: ${CS_GOVERNANCE_ENABLED:false}
+    kill-switch-default: ${CS_KILL_SWITCH_DEFAULT:false}
+  scan:
+    enabled: ${CS_SCAN_ENABLED:false}
+    default-standard: ${CS_SCAN_DEFAULT_STANDARD:OWASP_TOP10_2025}
+    active-probing-enabled: ${CS_SCAN_ACTIVE_PROBING_ENABLED:false}
+    active-probing-max-requests: ${CS_SCAN_ACTIVE_PROBING_MAX_REQUESTS:25}
+    rate-limit-probe-requests: ${CS_SCAN_RATE_LIMIT_PROBE_REQUESTS:15}
+  attack:
+    enabled: false
+  ai:
+    enabled: false

@@ -1,0 +1,70 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Cyber-Scout Demo API",
+    "version": "1.0.0"
+  },
+  "servers": [
+    { "url": "http://localhost:18080" }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "ItemCreate": {
+        "type": "object",
+        "properties": {
+          "count": { "type": "integer" }
+        },
+        "required": ["count"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "security": [
+    { "bearerAuth": [] }
+  ],
+  "paths": {
+    "/admin": {
+      "get": {
+        "summary": "Admin endpoint (secured by OpenAPI metadata)",
+        "responses": {
+          "200": { "description": "OK" }
+        }
+      }
+    },
+    "/api/secure": {
+      "get": {
+        "summary": "Secured endpoint",
+        "responses": {
+          "200": { "description": "OK" }
+        }
+      }
+    },
+    "/api/items": {
+      "post": {
+        "summary": "Create item (intentionally non-secured for demo)",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ItemCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Created" },
+          "400": { "description": "Bad Request" },
+          "500": { "description": "Server Error" }
+        }
+      }
+    }
+  }
+}
+

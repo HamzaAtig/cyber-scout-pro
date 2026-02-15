@@ -1,0 +1,15 @@
+{
+  "request": {
+    "method": "POST",
+    "urlPath": "/api/items",
+    "bodyPatterns": [
+      { "equalTo": "{" }
+    ]
+  },
+  "response": {
+    "status": 500,
+    "headers": { "Content-Type": "text/plain" },
+    "body": "Exception: JSON parse error\\nStacktrace: org.springframework.http.converter.HttpMessageNotReadableException"
+  }
+}
+

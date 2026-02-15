@@ -1,0 +1,15 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/api/secure"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json",
+      "X-Demo": "secure-ok"
+    },
+    "body": "{\"secure\":true}"
+  }
+}
+

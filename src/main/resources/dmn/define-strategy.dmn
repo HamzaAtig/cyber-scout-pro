@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/"
+             xmlns:camunda="http://camunda.org/schema/1.0/dmn"
+             id="Definitions_DefineStrategy"
+             name="Define Strategy"
+             namespace="http://hat.org/cyberscout/dmn">
+  <decision id="defineStrategy" name="Define Strategy">
+    <decisionTable id="DecisionTable_DefineStrategy" hitPolicy="FIRST">
+      <input id="Input_Tech" label="Tech">
+        <inputExpression id="InputExpression_Tech" typeRef="string">
+          <text>tech</text>
+        </inputExpression>
+      </input>
+      <output id="Output_Strategy" label="Strategy" name="strategy" typeRef="string"/>
+      <rule id="Rule_JWT">
+        <inputEntry id="InputEntry_JWT">
+          <text>"JWT"</text>
+        </inputEntry>
+        <outputEntry id="OutputEntry_JWT">
+          <text>"Token_Cracking"</text>
+        </outputEntry>
+      </rule>
+      <rule id="Rule_S3">
+        <inputEntry id="InputEntry_S3">
+          <text>"S3"</text>
+        </inputEntry>
+        <outputEntry id="OutputEntry_S3">
+          <text>"Bucket_Exfiltration"</text>
+        </outputEntry>
+      </rule>
+      <rule id="Rule_Default">
+        <inputEntry id="InputEntry_Default">
+          <text>-</text>
+        </inputEntry>
+        <outputEntry id="OutputEntry_Default">
+          <text>"Generic_Fuzzing"</text>
+        </outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+</definitions>

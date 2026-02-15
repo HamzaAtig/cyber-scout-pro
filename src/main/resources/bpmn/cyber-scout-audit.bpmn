@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+                  id="Definitions_CyberScoutAudit"
+                  targetNamespace="http://hat.org/cyberscout/bpmn">
+
+  <bpmn:error id="Error_InvalidLlmFormat" errorCode="INVALID_LLM_FORMAT"/>
+  <bpmn:error id="Error_PolicyBlocked" errorCode="POLICY_BLOCKED"/>
+
+  <bpmn:process id="cyberScoutAuditProcess" name="Cyber Scout Audit Process" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_Audit"/>
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_Audit" targetRef="Task_IdentifyAttackSurface"/>
+
+    <bpmn:serviceTask id="Task_IdentifyAttackSurface"
+                      name="Identify Attack Surface"
+                      camunda:asyncBefore="true"
+                      camunda:failedJobRetryTimeCycle="R3/PT10S"
+                      camunda:delegateExpression="${identifyAttackSurfaceDelegate}"/>
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_IdentifyAttackSurface" targetRef="Task_SelectChecks"/>
+
+    <bpmn:businessRuleTask id="Task_SelectChecks"
+                           name="Select Checks (DMN)"
+                           camunda:decisionRef="selectChecks"
+                           camunda:mapDecisionResult="collectEntries"
+                           camunda:resultVariable="enabledCheckFamilies"/>
+    <bpmn:sequenceFlow id="Flow_2b" sourceRef="Task_SelectChecks" targetRef="Task_RunReconChecks"/>
+
+    <bpmn:serviceTask id="Task_RunReconChecks"
+                      name="Run Recon Checks"
+                      camunda:asyncBefore="true"
+                      camunda:failedJobRetryTimeCycle="R3/PT10S"
+                      camunda:delegateExpression="${runReconChecksDelegate}"/>
+    <bpmn:sequenceFlow id="Flow_2c" sourceRef="Task_RunReconChecks" targetRef="Task_RunAttackChecks"/>
+
+    <bpmn:serviceTask id="Task_RunAttackChecks"
+                      name="Run Attack Checks"
+                      camunda:asyncBefore="true"
+                      camunda:failedJobRetryTimeCycle="R2/PT20S"
+                      camunda:delegateExpression="${runAttackChecksDelegate}"/>
+    <bpmn:sequenceFlow id="Flow_2d" sourceRef="Task_RunAttackChecks" targetRef="SubProcess_ParallelAssault"/>
+
+    <bpmn:subProcess id="SubProcess_ParallelAssault" name="Parallel Assault">
+      <bpmn:multiInstanceLoopCharacteristics isSequential="false"
+                                             camunda:collection="${targetList}"
+                                             camunda:elementVariable="target"/>
+
+      <bpmn:startEvent id="StartEvent_SubProcess"/>
+      <bpmn:sequenceFlow id="SubFlow_1" sourceRef="StartEvent_SubProcess" targetRef="Task_PrepareContext"/>
+
+      <bpmn:serviceTask id="Task_PrepareContext"
+                        name="Prepare Target Context"
+                        camunda:delegateExpression="${prepareTargetContextDelegate}"/>
+      <bpmn:sequenceFlow id="SubFlow_2" sourceRef="Task_PrepareContext" targetRef="Task_DefineStrategy"/>
+
+      <bpmn:businessRuleTask id="Task_DefineStrategy"
+                             name="Define Strategy (DMN)"
+                             camunda:decisionRef="defineStrategy"
+                             camunda:mapDecisionResult="singleEntry"
+                             camunda:resultVariable="strategy"/>
+      <bpmn:sequenceFlow id="SubFlow_3" sourceRef="Task_DefineStrategy" targetRef="Task_GeneratePayload"/>
+
+      <bpmn:serviceTask id="Task_GeneratePayload"
+                        name="Generate Custom Payload"
+                        camunda:asyncBefore="true"
+                        camunda:failedJobRetryTimeCycle="R2/PT20S"
+                        camunda:delegateExpression="${generateCustomPayloadDelegate}"/>
+      <bpmn:boundaryEvent id="Boundary_FormatError" attachedToRef="Task_GeneratePayload">
+        <bpmn:errorEventDefinition errorRef="Error_InvalidLlmFormat"/>
+      </bpmn:boundaryEvent>
+      <bpmn:sequenceFlow id="SubFlow_FormatRepair" sourceRef="Boundary_FormatError" targetRef="Task_FormatRepair"/>
+
+      <bpmn:serviceTask id="Task_FormatRepair"
+                        name="Format Repair"
+                        camunda:delegateExpression="${formatRepairDelegate}"/>
+      <bpmn:sequenceFlow id="SubFlow_RepairToExecute" sourceRef="Task_FormatRepair" targetRef="Task_ExecuteAttack"/>
+
+      <bpmn:sequenceFlow id="SubFlow_4" sourceRef="Task_GeneratePayload" targetRef="Task_ExecuteAttack"/>
+
+      <bpmn:serviceTask id="Task_ExecuteAttack"
+                        name="Execute Attack"
+                        camunda:asyncBefore="true"
+                        camunda:failedJobRetryTimeCycle="R3/PT15S"
+                        camunda:delegateExpression="${executeAttackDelegate}"/>
+
+      <bpmn:boundaryEvent id="Boundary_Timeout" attachedToRef="Task_ExecuteAttack" cancelActivity="true">
+        <bpmn:timerEventDefinition>
+          <bpmn:timeDuration>PT45S</bpmn:timeDuration>
+        </bpmn:timerEventDefinition>
+      </bpmn:boundaryEvent>
+      <bpmn:sequenceFlow id="SubFlow_Timeout" sourceRef="Boundary_Timeout" targetRef="Task_LogTimeout"/>
+
+      <bpmn:boundaryEvent id="Boundary_PolicyBlocked" attachedToRef="Task_ExecuteAttack">
+        <bpmn:errorEventDefinition errorRef="Error_PolicyBlocked"/>
+      </bpmn:boundaryEvent>
+      <bpmn:sequenceFlow id="SubFlow_PolicyBlocked" sourceRef="Boundary_PolicyBlocked" targetRef="Task_LogPolicyBlocked"/>
+
+      <bpmn:serviceTask id="Task_LogTimeout"
+                        name="Log Timeout"
+                        camunda:delegateExpression="${logTimeoutDelegate}"/>
+      <bpmn:sequenceFlow id="SubFlow_TimeoutToEnd" sourceRef="Task_LogTimeout" targetRef="EndEvent_SubProcess"/>
+
+      <bpmn:serviceTask id="Task_LogPolicyBlocked"
+                        name="Log Policy Blocked"
+                        camunda:delegateExpression="${logPolicyBlockedDelegate}"/>
+      <bpmn:sequenceFlow id="SubFlow_PolicyToEnd" sourceRef="Task_LogPolicyBlocked" targetRef="EndEvent_SubProcess"/>
+
+      <bpmn:serviceTask id="Task_AnalyzeResponse"
+                        name="Analyze Response"
+                        camunda:asyncBefore="true"
+                        camunda:failedJobRetryTimeCycle="R2/PT10S"
+                        camunda:delegateExpression="${analyzeResponseDelegate}"/>
+      <bpmn:sequenceFlow id="SubFlow_5" sourceRef="Task_ExecuteAttack" targetRef="Task_AnalyzeResponse"/>
+      <bpmn:sequenceFlow id="SubFlow_6" sourceRef="Task_AnalyzeResponse" targetRef="EndEvent_SubProcess"/>
+
+      <bpmn:endEvent id="EndEvent_SubProcess"/>
+    </bpmn:subProcess>
+
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="SubProcess_ParallelAssault" targetRef="Task_FinishScanRun"/>
+
+    <bpmn:serviceTask id="Task_FinishScanRun"
+                      name="Finish Scan Run"
+                      camunda:asyncBefore="true"
+                      camunda:failedJobRetryTimeCycle="R3/PT10S"
+                      camunda:delegateExpression="${finishScanRunDelegate}"/>
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="Task_FinishScanRun" targetRef="EndEvent_Audit"/>
+    <bpmn:endEvent id="EndEvent_Audit"/>
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="BPMNDiagram_CyberScoutAudit">
+    <bpmndi:BPMNPlane id="BPMNPlane_CyberScoutAudit" bpmnElement="cyberScoutAuditProcess"/>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

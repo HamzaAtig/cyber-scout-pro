@@ -1,0 +1,15 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/admin"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json",
+      "X-Demo": "admin-ok"
+    },
+    "body": "{\"status\":\"ok\"}"
+  }
+}
+
